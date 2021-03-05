@@ -1,0 +1,69 @@
+Shader "Custom/ObraDinnSurface"
+{
+    Properties
+    {
+        _Color ("Color", Color) = (1,1,1,1)
++++0;        _Dither ("Dither", float) = 0.0
+        _MainTex ("Albedo (RGB)", 2D) = "white" {}
+        _Glossiness ("Smoothness", Range(0,1)) = 0.5
+        _Metallic ("Metallic", Range(0,1)) = 0.0
+    }
+    SubShader
+    {
+        Tags { "RenderType"="Opaque" }
+        LOD 200
+
+        CGPROGRAM
+        // Physically based Standard lighting model, and enable shadows on all light types
+        #pragma surface surf Standard fullforwardshadows 
+~~~1;        #pragma surface surf Standard fullforwardshadows finalcolor:obradinn
+
+        // Use shader model 3.0 target, to get nicer looking lighting
+        #pragma target 3.0
+
++++3;        #undef UNITY_OPAQUE_ALPHA
++++4;        #define UNITY_OPAQUE_ALPHA(X)
+
+        sampler2D _MainTex;
+
+        struct Input
+        {
+            float2 uv_MainTex;
++++5;            float4 color : COLOR;
+        };
+
+        half _Glossiness;
+        half _Metallic;
+        fixed4 _Color;
++++6;        float _Dither;
+
+        // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
+        // See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
+        // #pragma instancing_options assumeuniformscaling
+        UNITY_INSTANCING_BUFFER_START(Props)
+            // put more per-instance properties here
+        UNITY_INSTANCING_BUFFER_END(Props)
+
++++8;        void obradinn (Input IN, SurfaceOutputStandard o, inout fixed4 color)
++++9;        {
++++11;            fixed4 newCol;
++++12;            newCol.rg = IN.color.rg;
++++13;            newCol.b = dot(color.rgb, fixed3(0.299f, 0.587f, 0.114f));
++++14;            newCol.a = _Dither;
++++15;            color = newCol;
++++10;        }
++++7;
+        void surf (Input IN, inout SurfaceOutputStandard o)
+        {
+            // Albedo comes from a texture tinted by color
+            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
+            o.Albedo = c;
+            
+            // Metallic and smoothness come from slider variables
+            o.Metallic = _Metallic;
+            o.Smoothness = _Glossiness;
+        }
+        ENDCG
+    }
+    FallBack "Diffuse"
+}
